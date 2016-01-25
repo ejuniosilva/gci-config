@@ -1,3 +1,7 @@
+import gci.*
+import grails.util.GrailsNameUtils
+
+
 class GciConfigGrailsPlugin {
     // the plugin version
     def version = "0.1"
@@ -65,45 +69,40 @@ Brief summary/description of the plugin.
                         }
 
                         addConfig { namespace, name, value ->
-                            def isInstance, isGlobal, className, config, configDefinition
+                            def isInstance, className, config, configDefinition
 
-                            configDefinition = ConfigDefinition.findByNamespaceAndName(namespace,name)
+                            configDefinition = GciConfigDefinition.findByNamespaceAndName(namespace,name)
 
                             if (!configDefinition)
                                 throw new RuntimeException("ConfigDefinition ${namespace}.${name} not found!")
 
-                            if (value != null && ConfigDefinition.inferDataType(value) != configDefinition.dataType)
+                            if (value != null && GciConfigDefinition.inferDataType(value) != configDefinition.dataType)
                                 throw new RuntimeException("Data type of parameter value is different of configDefintion's data type!")
 
                             isInstance = delegate.hasProperty("id") && delegate.id != null
 
-                            if (isInstance)
+                            if (isInstance) {
                                 className = GrailsNameUtils.getPropertyName(delegate.class)
-                            else
+                                config = GciConfig.findByConfigDefinitionAndClassNameAndInstanceIdAndLevel(configDefinition, className, delegate.id, GciConfigLevel.INSTANCE)
+                            }
+                            else {
                                 className = GrailsNameUtils.getPropertyName(delegate)
-
-                            isGlobal = className.contains("globalConfig")
-
-                            if (isGlobal)
-                                config = GlobalConfig.findByConfigDefinition(configDefinition)
-                            else if (isInstance)
-                                config = InstanceConfig.findByConfigDefinitionAndClassNameAndInstanceId(configDefinition, className, delegate.id)
-                            else
-                                config = ClassConfig.findByConfigDefinitionAndClassName(configDefinition, className)
+                                config = GciConfig.findByConfigDefinitionAndClassNameAndLevel(configDefinition, className, GciConfigLevel.CLASS)
+                            }
 
                             if (config)
                                 throw new RuntimeException("Config ${namespace}.${name} already exists for class ${className}!")
 
-                            if (isGlobal)
-                                config = new GlobalConfig()
-                            else if (isInstance) {
-                                config = new InstanceConfig()
+                            if (isInstance) {
+                                config = new GciConfig()
                                 config.className = className
                                 config.instanceId = delegate.id
+                                config.level = GciConfigLevel.INSTANCE
                             }
                             else {
-                                config = new ClassConfig()
+                                config = new GciConfig()
                                 config.className = className
+                                config.level = GciConfigLevel.CLASS
                             }
 
                             config.value = value
@@ -121,25 +120,23 @@ Brief summary/description of the plugin.
                         }
 
                         getConfig { namespace, name ->
-                            def className, config, globalConfig, configDefinition
+                            def className, config, configDefinition, value
 
                             className = GrailsNameUtils.getPropertyName(delegate)
 
-                            configDefinition = ConfigDefinition.findByNamespaceAndName(namespace,name)
+                            configDefinition = GciConfigDefinition.findByNamespaceAndName(namespace,name)
 
                             if (!configDefinition)
                                 throw new RuntimeException("ConfigDefinition ${namespace}.${name} not found!")
 
-                            config = ClassConfig.findByConfigDefinitionAndClassName(configDefinition,className)
-                            globalConfig = GlobalConfig.findByConfigDefinition(configDefinition)
+                            config = GciConfig.findByConfigDefinitionAndClassNameAndLevel(configDefinition,className, GciConfigLevel.CLASS)
 
                             if (!config)
-                                config = globalConfig
+                                value = configDefinition.defaultValue
+                            else
+                                value = config.value
 
-                            if (!config)
-                                throw new RuntimeException("Config ${namespace}.${name} not found for class ${className}!")
-
-                            return ConfigDefinition.castConfigValue(config.value,config.configDefinition.dataType)
+                            return GciConfigDefinition.castConfigValue(value,configDefinition.dataType)
                         }
 
                         setConfig { name, value ->
@@ -152,24 +149,19 @@ Brief summary/description of the plugin.
                         }
 
                         setConfig { namespace, name, value ->
-                            def isGlobal, className, configDefinition, config
+                            def className, configDefinition, config
 
                             className = GrailsNameUtils.getPropertyName(delegate)
 
-                            configDefinition = ConfigDefinition.findByNamespaceAndName(namespace,name)
+                            configDefinition = GciConfigDefinition.findByNamespaceAndName(namespace,name)
 
                             if (!configDefinition)
                                 throw new RuntimeException("ConfigDefinition ${namespace}.${name} not found!")
 
-                            if (value != null && ConfigDefinition.inferDataType(value) != configDefinition.dataType)
+                            if (value != null && GciConfigDefinition.inferDataType(value) != configDefinition.dataType)
                                 throw new RuntimeException("Data type of parameter value is different of configDefintion's data type!")
 
-                            isGlobal = className.contains("globalConfig")
-
-                            if (isGlobal)
-                                config = GlobalConfig.findByConfigDefinition(configDefinition)
-                            else
-                                config = ClassConfig.findByConfigDefinitionAndClassName(configDefinition, className)
+                            config = GciConfig.findByConfigDefinitionAndClassNameAndLevel(configDefinition,className, GciConfigLevel.CLASS)
 
                             if (!config)
                                 throw new RuntimeException("Config ${namespace}.${name} not found for class ${className}!")
@@ -188,28 +180,23 @@ Brief summary/description of the plugin.
                         }
 
                         delConfig { namespace, name ->
-                            def isInstance, isGlobal, className, configDefinition, config
+                            def isInstance, className, configDefinition, config
 
-                            configDefinition = ConfigDefinition.findByNamespaceAndName(namespace,name)
+                            configDefinition = GciConfigDefinition.findByNamespaceAndName(namespace,name)
 
                             if (!configDefinition)
                                 throw new RuntimeException("ConfigDefinition ${namespace}.${name} not found!")
 
                             isInstance = delegate.hasProperty("id") && delegate.id != null
 
-                            if (isInstance)
+                            if (isInstance) {
                                 className = GrailsNameUtils.getPropertyName(delegate.class)
-                            else
+                                config = GciConfig.findByConfigDefinitionAndClassNameAndInstanceIdAndLevel(configDefinition, className, delegate.id, GciConfigLevel.INSTANCE)
+                            }
+                            else {
                                 className = GrailsNameUtils.getPropertyName(delegate)
-
-                            isGlobal = className.contains("globalConfig")
-
-                            if (isGlobal)
-                                config = GlobalConfig.findByConfigDefinition(configDefinition)
-                            else if (isInstance)
-                                config = InstanceConfig.findByConfigDefinitionAndClassNameAndInstanceId(configDefinition, className, delegate.id)
-                            else
-                                config = ClassConfig.findByConfigDefinitionAndClassName(configDefinition, className)
+                                config = GciConfig.findByConfigDefinitionAndClassNameAndLevel(configDefinition, className, GciConfigLevel.CLASS)
+                            }
 
                             if (!config)
                                 throw new RuntimeException("Config ${namespace}.${name} not found for class ${className}!")
@@ -230,27 +217,26 @@ Brief summary/description of the plugin.
                     }
 
                     getConfig { namespace, name ->
-                        def className, config, configDefinition
+                        def className, config, configDefinition, value
 
                         className = GrailsNameUtils.getPropertyName(delegate.class)
-                        configDefinition = ConfigDefinition.findByNamespaceAndName(namespace,name)
+                        configDefinition = GciConfigDefinition.findByNamespaceAndName(namespace,name)
 
                         if (!configDefinition)
                             throw new RuntimeException("ConfigDefinition ${namespace}.${name} not found!")
 
                         //Try on the instance first
-                        config = InstanceConfig.findByConfigDefinitionAndClassNameAndInstanceId(configDefinition, className, delegate.id)
+                        config = GciConfig.findByConfigDefinitionAndClassNameAndInstanceIdAndLevel(configDefinition, className, delegate.id, GciConfigLevel.INSTANCE)
 
                         if (!config)
-                            config = ClassConfig.findByConfigDefinitionAndClassName(configDefinition, className)
+                            config = GciConfig.findByConfigDefinitionAndClassNameAndLevel(configDefinition, className, GciConfigLevel.CLASS)
 
                         if (!config)
-                            config = GlobalConfig.findByConfigDefinition(configDefinition)
+                            value = configDefinition.defaultValue
+                        else
+                            value = config.value
 
-                        if (!config)
-                            throw new RuntimeException("Config ${namespace}.${name} not found for class ${className}!")
-
-                        return ConfigDefinition.castConfigValue(config.value,configDefinition.dataType)
+                        return GciConfigDefinition.castConfigValue(value,configDefinition.dataType)
                     }
 
                     setConfig { name, value ->
@@ -266,18 +252,18 @@ Brief summary/description of the plugin.
                         def className, config, configDefinition
 
                         className = GrailsNameUtils.getPropertyName(delegate.class)
-                        configDefinition = ConfigDefinition.findByNamespaceAndName(namespace,name)
+                        configDefinition = GciConfigDefinition.findByNamespaceAndName(namespace,name)
 
-                        if (value != null && ConfigDefinition.inferDataType(value) != configDefinition.dataType)
+                        if (value != null && GciConfigDefinition.inferDataType(value) != configDefinition.dataType)
                             throw new RuntimeException("Data type of parameter value is different of configDefintion's data type!")
 
                         if (!configDefinition)
                             throw new RuntimeException("ConfigDefinition ${namespace}.${name} not found!")
 
-                        config = InstanceConfig.findByConfigDefinitionAndClassNameAndInstanceId(configDefinition, className, delegate.id)
+                        config = GciConfig.findByConfigDefinitionAndClassNameAndInstanceIdAndLevel(configDefinition, className, delegate.id, GciConfigLevel.INSTANCE)
 
                         if (!config)
-                            throw new RuntimeException("Config ${namespace}.${name} not found for class ${className}!")
+                            throw new RuntimeException("Config ${namespace}.${name} not found for class ${className} and instanceId ${delegate.id}!")
 
                         config.value = value
                         config.save(flush:true)

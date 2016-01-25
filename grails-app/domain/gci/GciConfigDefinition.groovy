@@ -1,56 +1,67 @@
 package gci
 
-class ConfigDefinition {
+class GciConfigDefinition {
     String name
     String namespace
-    ConfigDataType dataType
+    GciConfigDataType dataType
     String description
+    String defaultValue
 
     static constraints = {
         description nullable:  true
+        defaultValue nullable: true
         name unique: 'namespace'
     }
 
-    static create(namespace, name, description, dataType) {
-        def configDefinition = ConfigDefinition.findByNamespaceAndName(namespace,name)
+    static mapping = {
+        defaultValue type: 'text'
+    }
+
+    static create(namespace, name, description, defaultValue, dataType) {
+        def configDefinition = GciConfigDefinition.findByNamespaceAndName(namespace,name)
 
         if (configDefinition)
             throw new RuntimeException("ConfigDefinition ${namespace}.${name} already exists!")
 
         if (!configDefinition) {
-            configDefinition = new ConfigDefinition()
+            configDefinition = new GciConfigDefinition()
             configDefinition.namespace = namespace
             configDefinition.name = name
             configDefinition.dataType = dataType
             configDefinition.description = description
+            configDefinition.defaultValue = defaultValue
+
+            if (defaultValue != null && dataType != inferDataType(defaultValue))
+                throw new RuntimeException("Datatype of default value is different!")
+
             configDefinition.save(flush: true)
         }
     }
 
     static inferDataType(value) {
         if (!value)
-            return ConfigDataType.String
+            return GciConfigDataType.String
 
         value = value.toString()
 
         if (value.toLowerCase() == "false" || value.toLowerCase() == "true")
-            return ConfigDataType.Boolean
+            return GciConfigDataType.Boolean
 
         try {
             Integer.parseInt(value)
-            return ConfigDataType.Integer
+            return GciConfigDataType.Integer
         }
         catch(e) {}
 
         try {
             Float.parseFloat(value)
-            return ConfigDataType.Float
+            return GciConfigDataType.Float
         }
         catch(e) {}
 
         try {
             Double.parseDouble(value)
-            return ConfigDataType.Double
+            return GciConfigDataType.Double
         }
         catch(e) {}
 
@@ -63,42 +74,42 @@ class ConfigDefinition {
                 evalResult = Eval.me(value)
 
                 if (evalResult instanceof List)
-                    return ConfigDataType.List
+                    return GciConfigDataType.List
                 else if (evalResult instanceof Map)
-                    return ConfigDataType.Map
+                    return GciConfigDataType.Map
             }
         }
         catch(e) {}
 
-        return ConfigDataType.String
+        return GciConfigDataType.String
     }
 
-    static castConfigValue (value, ConfigDataType type) {
+    static castConfigValue (value, GciConfigDataType type) {
         def result = null
 
 
         switch (type) {
-            case ConfigDataType.Boolean:
+            case GciConfigDataType.Boolean:
                 result = value ? value.toBoolean() : false
                 break
 
-            case ConfigDataType.Integer:
+            case GciConfigDataType.Integer:
                 result = value ? value.toInteger() : null
                 break
 
-            case ConfigDataType.Double:
+            case GciConfigDataType.Double:
                 result = value ? value.toDouble() : null
                 break
 
-            case ConfigDataType.Float:
+            case GciConfigDataType.Float:
                 result = value ? value.toFloat() : null
                 break
 
-            case ConfigDataType.Character:
+            case GciConfigDataType.Character:
                 result = value ? value.toCharacter() : null
                 break
 
-            case (ConfigDataType.List || ConfigDataType.Map):
+            case (GciConfigDataType.List || GciConfigDataType.Map):
                 if (value) {
                     value = value.trim()
 
@@ -115,7 +126,7 @@ class ConfigDefinition {
     }
 }
 
-enum ConfigDataType {
+enum GciConfigDataType {
     Boolean,
     Integer,
     Float,
