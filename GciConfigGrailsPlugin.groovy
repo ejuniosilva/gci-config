@@ -105,7 +105,7 @@ Brief summary/description of the plugin.
                                 config.level = GciConfigLevel.CLASS
                             }
 
-                            config.value = value
+                            config.value = value.toString()
                             config.configDefinition = configDefinition
                             config.save(flush: true)
                         }
@@ -166,7 +166,7 @@ Brief summary/description of the plugin.
                             if (!config)
                                 throw new RuntimeException("Config ${namespace}.${name} not found for class ${className}!")
 
-                            config.value = value
+                            config.value = value.toString()
                             config.save(flush: true)
                         }
 
@@ -265,7 +265,7 @@ Brief summary/description of the plugin.
                         if (!config)
                             throw new RuntimeException("Config ${namespace}.${name} not found for class ${className} and instanceId ${delegate.id}!")
 
-                        config.value = value
+                        config.value = value.toString()
                         config.save(flush:true)
                     }
                 }

@@ -29,7 +29,7 @@ class GciConfigDefinition {
             configDefinition.name = name
             configDefinition.dataType = dataType
             configDefinition.description = description
-            configDefinition.defaultValue = defaultValue
+            configDefinition.defaultValue = defaultValue.toString()
 
             if (defaultValue != null && dataType != inferDataType(defaultValue))
                 throw new RuntimeException("Datatype of default value is different!")
@@ -39,7 +39,7 @@ class GciConfigDefinition {
     }
 
     static inferDataType(value) {
-        if (!value)
+        if (value == null)
             return GciConfigDataType.String
 
         value = value.toString()
@@ -109,7 +109,8 @@ class GciConfigDefinition {
                 result = value ? value.toCharacter() : null
                 break
 
-            case (GciConfigDataType.List || GciConfigDataType.Map):
+            case [GciConfigDataType.List,GciConfigDataType.Map]:
+
                 if (value) {
                     value = value.trim()
 
@@ -119,6 +120,12 @@ class GciConfigDefinition {
                         throw new RuntimeException("Cast of ${value} to (List or Map) isn't possible!")
                 }
 
+                break
+
+            case GciConfigDataType.String:
+                result = value?value.toString():null
+                break
+            case GciConfigDataType.Map:
                 break
         }
 
