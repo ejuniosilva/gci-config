@@ -9,9 +9,9 @@ class GciConfigGrailsPlugin {
     ]
 
     // TODO Fill in these fields
-    def title = "Gci Config Plugin" // Headline display name of the plugin
-    def author = "Your name"
-    def authorEmail = ""
+    def title = "GCI Config Plugin" // Headline display name of the plugin
+    def author = "Luiz Cantoni"
+    def authorEmail = "luiz.cantoni@gmail.com"
     def description = '''\
 Brief summary/description of the plugin.
 '''
@@ -34,7 +34,7 @@ Brief summary/description of the plugin.
 //    def issueManagement = [ system: "JIRA", url: "http://jira.grails.org/browse/GPMYPLUGIN" ]
 
     // Online location of the plugin's browseable source code.
-//    def scm = [ url: "http://svn.codehaus.org/grails-plugins/" ]
+    def scm = [ url: "https://github.com/luizcantoni/gci-config" ]
 
     def doWithWebDescriptor = { xml ->
         // TODO Implement additions to web.xml (optional), this event occurs before
