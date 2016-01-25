@@ -1,5 +1,5 @@
-GCI-Config is a Grails Plugin that allows the developer to specify Configurations in a Global, Class and Instance levels.
-The plugin uses two tables in the database to store the configurations, theses tables are called Global_Config and Config_Definition.
+GCI-Config is a Grails Plugin that allows the developer to specify Configurations in a Global (default), Class and Instance levels.
+The plugin uses two tables in the database to store the configurations, theses tables are called Gci_Config and Gci_Config_Definition.
 
 GCI-Config was inspired in the same concepts of Commentable Plugin. Some methods are injected at the Class (static) and Instance levels.
 
@@ -10,7 +10,7 @@ These methods are:
 * setConfig
 * delConfig
 
-Besides the methods described above there is other called `ConfigDefinition.create`. This method is used to create a Config Definition.
+Besides the methods described above there is other called `GciConfigDefinition.create`. This method is used to create a Config Definition.
 
 The most important thing about this plugin is the possibility to easily specify configurations at instance level.
 
@@ -21,16 +21,19 @@ The most important thing about this plugin is the possibility to easily specify 
 First of all it's necessary to create a Config Definition
 
 ```groovy
-ConfigDefinition.create("client","maxDaysToApprove","Specify the quantity of days that the client has to approve the Quote.",ConfigDataType.Integer)
+GciConfigDefinition.create("client","maxDaysToApprove","Specify the quantity of days that the client has to approve the Quote.",30,ConfigDataType.Integer)
 ```
+* **namespace**: client
+* **name**: maxDatsToApprove
+* **description**: Specify the quantity...
+* **defaultValue**: 30
+* **datatype**: ConfigDataType.Integer
 
 ##### Adding a Config
 
-Second, it's necessary to add the ConfigDefinition created in some level (or all of three).
+Second, it's necessary to add the ConfigDefinition created in some level (or both):
 
 ```groovy
-//Specifing (or not) the config value in a global level
-GlobalConfig.addConfig("client.maxDaysToApprove",30)
 
 //Specifing (or not) the config value in a class level
 Client.addConfig("client.maxDaysToApprove",50)
@@ -41,15 +44,12 @@ Client.get(200).addConfig("client.maxDaysToApprove",15)
 
 ##### Getting a Config
 
-The `getConfig` method has different behaviours if called from Instance, Class or Global level.
+The `getConfig` method has different behaviours if called from Class or Instance level.
 
-If called from instance, the the method first tries to get the config value at Instance level. If none config is found, then the method tries at Class level. Again, if none is found, then the method tries at Global level. If the config isn't found in none of three levels, the a RuntimeException is raised.
-
-The same ocurrs at class and global level. Summarizing:
+If called from instance, the the method first tries to get the config value at Instance level. If none config is found, then the method tries at Class level. Again, if none is found, then the method returns the defaultValue (stored in GciConfigDefinition). If the config passed as parameter isn't found then a RuntimeException is raised.
 
 * Instance Level: Instance -> Class -> Global
 * Class Level: Class -> Global
-* Global: Global
 
 Following the example above, then the code below will return 50, since there is no `client.maxDaysToApprove` configuration at this instance level (300), but there is at class level:
 
@@ -67,12 +67,6 @@ The code below will returns 15, since the call is performed at instance level an
 
 ```groovy
 Client.get(200).getConfig("client.maxDaysToApprove")
-```
-
-The code below will return 30, since it's performed at Global level:
-
-```groovy
-GlobalConfig.getConfig("client.maxDaysToApprove")
 ```
 
 ##### Setting a Config
