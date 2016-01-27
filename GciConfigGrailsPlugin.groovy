@@ -55,20 +55,20 @@ Brief summary/description of the plugin.
                     'static' {
                         //### Class (static) methdos ###
 
-                        addConfig { name ->
-                            addConfig(name,null)
+                        addGciConfig { name ->
+                            addGciConfig(name,null)
                         }
 
-                        addConfig { name, value ->
+                        addGciConfig { name, value ->
                             if (!name.contains("."))
                                 throw new RuntimeException("The name needs to contain the namespace. Format: namespace.name, example: quote.maxDays")
 
                             def aux = name.split("\\.")
 
-                            addConfig (aux[0],aux[1],value)
+                            addGciConfig (aux[0],aux[1],value)
                         }
 
-                        addConfig { namespace, name, value ->
+                        addGciConfig { namespace, name, value ->
                             def isInstance, className, config, configDefinition
 
                             configDefinition = GciConfigDefinition.findByNamespaceAndName(namespace,name)
@@ -110,16 +110,16 @@ Brief summary/description of the plugin.
                             config.save(flush: true)
                         }
 
-                        getConfig { name ->
+                        getGciConfig { name ->
                             if (!name.contains("."))
                                 throw new RuntimeException("The parameter name needs to contain the namespace. Format: namespace.name, example: quote.maxDays")
 
                             def aux = name.split("\\.")
 
-                            return delegate.getConfig (aux[0],aux[1])
+                            return delegate.getGciConfig (aux[0],aux[1])
                         }
 
-                        getConfig { namespace, name ->
+                        getGciConfig { namespace, name ->
                             def className, config, configDefinition, value
 
                             className = GrailsNameUtils.getPropertyName(delegate)
@@ -139,16 +139,16 @@ Brief summary/description of the plugin.
                             return GciConfigDefinition.castConfigValue(value,configDefinition.dataType)
                         }
 
-                        setConfig { name, value ->
+                        setGciConfig { name, value ->
                             if (!name.contains("."))
                                 throw new RuntimeException("The parameter name needs to contain the namespace. Format: namespace.name, example: quote.maxDays")
 
                             def aux = name.split("\\.")
 
-                            delegate.setConfig (aux[0],aux[1],value)
+                            delegate.setGciConfig (aux[0],aux[1],value)
                         }
 
-                        setConfig { namespace, name, value ->
+                        setGciConfig { namespace, name, value ->
                             def className, configDefinition, config
 
                             className = GrailsNameUtils.getPropertyName(delegate)
@@ -170,16 +170,16 @@ Brief summary/description of the plugin.
                             config.save(flush: true)
                         }
 
-                        delConfig { name ->
+                        delGciConfig { name ->
                             if (!name.contains("."))
                                 throw new RuntimeException("The parameter name needs to contain the namespace. Format: namespace.name, example: quote.maxDays")
 
                             def aux = name.split("\\.")
 
-                            delegate.delConfig (aux[0],aux[1])
+                            delegate.delGciConfig (aux[0],aux[1])
                         }
 
-                        delConfig { namespace, name ->
+                        delGciConfig { namespace, name ->
                             def isInstance, className, configDefinition, config
 
                             configDefinition = GciConfigDefinition.findByNamespaceAndName(namespace,name)
@@ -207,16 +207,16 @@ Brief summary/description of the plugin.
 
                     //### Instance methdos ###
 
-                    getConfig { name ->
+                    getGciConfig { name ->
                         if (!name.contains("."))
                             throw new RuntimeException("The parameter name needs to contain the namespace. Format: namespace.name, example: quote.maxDays")
 
                         def aux = name.split("\\.")
 
-                        return getConfig (aux[0],aux[1])
+                        return getGciConfig (aux[0],aux[1])
                     }
 
-                    getConfig { namespace, name ->
+                    getGciConfig { namespace, name ->
                         def className, config, configDefinition, value
 
                         className = GrailsNameUtils.getPropertyName(delegate.class)
@@ -239,16 +239,16 @@ Brief summary/description of the plugin.
                         return GciConfigDefinition.castConfigValue(value,configDefinition.dataType)
                     }
 
-                    setConfig { name, value ->
+                    setGciConfig { name, value ->
                         if (!name.contains("."))
                             throw new RuntimeException("The parameter name needs to contain the namespace. Format: namespace.name, example: quote.maxDays")
 
                         def aux = name.split("\\.")
 
-                        setConfig (aux[0],aux[1],value)
+                        setGciConfig (aux[0],aux[1],value)
                     }
 
-                    setConfig { namespace, name, value ->
+                    setGciConfig { namespace, name, value ->
                         def className, config, configDefinition
 
                         className = GrailsNameUtils.getPropertyName(delegate.class)
